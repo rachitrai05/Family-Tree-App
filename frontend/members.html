@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Family Members</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-gray-100 p-6">
+
+  <!-- Navbar -->
+  <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow mb-6">
+    <h1 class="text-2xl font-bold text-blue-600">👨‍👩‍👧 Family Members</h1>
+
+    <div class="flex gap-2">
+      <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        Logout
+      </button>
+
+      <a href="dashboard.html" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+        Back to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <input id="search" placeholder="🔍 Search member..."
+    class="mb-6 w-full p-3 rounded-lg border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+  <!-- Cards -->
+  <div id="list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+
+  <!-- ✏️ Edit Modal -->
+  <div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center">
+    <div class="bg-white p-6 rounded-xl w-96 shadow-xl overflow-y-auto max-h-[90vh]">
+
+      <h2 class="text-xl font-bold mb-4">✏️ Edit Member</h2>
+
+      <input id="editName" placeholder="Name"
+        class="border p-2 w-full mb-2 rounded">
+
+      <select id="editGender" class="border p-2 w-full mb-2 rounded">
+        <option value="">Select Gender</option>
+        <option>Male</option>
+        <option>Female</option>
+      </select>
+
+      <!-- Parent -->
+      <select id="editFather" class="border p-2 w-full mb-2 rounded">
+        <option value="">Select Father</option>
+      </select>
+
+      <select id="editMother" class="border p-2 w-full mb-2 rounded">
+        <option value="">Select Mother</option>
+      </select>
+
+      <!-- Spouse -->
+      <select id="editSpouse" class="border p-2 w-full mb-2 rounded">
+        <option value="">Select Spouse</option>
+      </select>
+
+      <!-- Relation -->
+      <select id="editRelation" onchange="handleEditRelationChange()" class="border p-2 w-full mb-2 rounded">
+        <option value="">Select Relation</option>
+        <option>Father</option>
+        <option>Mother</option>
+        <option>Son</option>
+        <option>Daughter</option>
+        <option>Brother</option>
+        <option>Sister</option>
+        <option>Grandfather</option>
+        <option>Grandmother</option>
+        <option>Other</option>
+      </select>
+      <input 
+          id="editCustomRelation" 
+          placeholder="Enter custom relation"
+          class="border p-2 w-full mb-2 rounded hidden"
+        />
+      <!-- Photo -->
+      <input id="editPhoto" type="file"
+        class="border p-2 w-full mb-2 rounded">
+
+      <div class="flex justify-end gap-2 mt-4">
+        <button onclick="closeModal()" 
+          class="px-4 py-2 bg-gray-400 text-white rounded">
+          Cancel
+        </button>
+
+        <button onclick="updateMember()" 
+          class="px-4 py-2 bg-blue-500 text-white rounded">
+          Save
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+const API = "http://localhost:5000";
+const token = localStorage.getItem("token");
+
+let allData = [];
+let editId = null;
+
+function handleEditRelationChange() {
+  const relation = document.getElementById("editRelation").value;
+  const customInput = document.getElementById("editCustomRelation");
+
+  if (relation === "Other") {
+    customInput.classList.remove("hidden");
+  } else {
+    customInput.classList.add("hidden");
+    customInput.value = "";
+  }
+}
+
+// 🚀 Load Members
+async function loadMembers() {
+  const res = await fetch(API + "/all", {
+    headers: { "Authorization": token }
+  });
+
+  const data = await res.json();
+  allData = data;
+  renderCards(data);
+}
+
+// 🎨 Render Cards
+function renderCards(data) {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(p => {
+    const spouse =
+      allData.find(x => x._id === p.spouseId) ||
+      allData.find(x => x.spouseId === p._id);
+
+    const card = document.createElement("div");
+
+    card.className = `
+      bg-white p-5 rounded-2xl shadow-md 
+      hover:shadow-2xl hover:scale-105 
+      transition duration-300 cursor-pointer
+      border-l-4 ${p.gender === "Male" ? "border-blue-400" : "border-pink-400"}
+    `;
+
+    card.innerHTML = `
+      <div class="flex items-center gap-4 mb-3">
+        <img src="${p.profilePic || 'https://via.placeholder.com/50'}"
+          class="w-14 h-14 rounded-full object-cover border">
+
+        <div>
+          <h2 class="text-lg font-bold">${p.name}</h2>
+          <p class="text-sm text-gray-500">${p.gender}</p>
+          <p class="text-sm text-gray-500">${p.relationType || "No relation"}</p>
+        </div>
+      </div>
+
+      <p class="text-gray-600 mb-3">
+        <b>Spouse:</b> ${spouse ? spouse.name : "None"}
+      </p>
+
+      <div class="flex gap-2">
+        <button onclick="openEdit(event, '${p._id}')"
+          class="bg-yellow-400 px-3 py-1 rounded hover:bg-yellow-500">
+          Edit
+        </button>
+
+        <button onclick="deletePerson(event, '${p._id}')"
+          class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+          Delete
+        </button>
+      </div>
+    `;
+
+    card.onclick = () => {
+      window.location.href = `profile.html?id=${p._id}`;
+    };
+
+    list.appendChild(card);
+  });
+}
+
+// 🗑️ DELETE
+async function deletePerson(event, id) {
+  event.stopPropagation();
+
+  if (!confirm("Are you sure?")) return;
+
+  await fetch(API + "/delete/" + id, {
+    method: "DELETE",
+    headers: { "Authorization": token }
+  });
+
+  loadMembers();
+}
+
+// ✏️ OPEN EDIT
+function openEdit(event, id) {
+  event.stopPropagation();
+
+  editId = id;
+  const person = allData.find(p => p._id === id);
+
+  document.getElementById("editName").value = person.name;
+  document.getElementById("editGender").value = person.gender;
+  const relationDropdown = document.getElementById("editRelation");
+  const customInput = document.getElementById("editCustomRelation");
+
+  // predefined options
+  const options = ["Father","Mother","Son","Daughter","Brother","Sister","Grandfather","Grandmother","Other"];
+
+  if (options.includes(person.relationType)) {
+    relationDropdown.value = person.relationType;
+    customInput.classList.add("hidden");
+  } else if (person.relationType) {
+    relationDropdown.value = "Other";
+    customInput.classList.remove("hidden");
+    customInput.value = person.relationType;
+  } else {
+    relationDropdown.value = "";
+  }
+
+  const fatherSelect = document.getElementById("editFather");
+  const motherSelect = document.getElementById("editMother");
+  const spouseSelect = document.getElementById("editSpouse");
+
+  fatherSelect.innerHTML = '<option value="">Select Father</option>';
+motherSelect.innerHTML = '<option value="">Select Mother</option>';
+spouseSelect.innerHTML = '<option value="">Select Spouse</option>';
+
+allData.forEach(p => {
+  if (p._id !== id) {
+    fatherSelect.innerHTML += `<option value="${p._id}">${p.name}</option>`;
+    motherSelect.innerHTML += `<option value="${p._id}">${p.name}</option>`;
+    spouseSelect.innerHTML += `<option value="${p._id}">${p.name}</option>`;
+  }
+});
+
+  fatherSelect.value = person.fatherId || "";
+  motherSelect.value = person.motherId || "";
+  spouseSelect.value = person.spouseId || "";
+
+  document.getElementById("editModal").classList.remove("hidden");
+  document.getElementById("editModal").classList.add("flex");
+}
+
+// ❌ CLOSE
+function closeModal() {
+  document.getElementById("editModal").classList.add("hidden");
+  document.getElementById("editModal").classList.remove("flex");
+  document.getElementById("editName").value = "";
+  document.getElementById("editGender").value = "";
+  document.getElementById("editRelation").value = "";
+  document.getElementById("editFather").value = "";
+  document.getElementById("editMother").value = "";
+  document.getElementById("editSpouse").value = "";
+  document.getElementById("editPhoto").value = "";
+}
+
+// 💾 UPDATE
+async function updateMember() {
+  const name = document.getElementById("editName").value;
+  const gender = document.getElementById("editGender").value;
+
+  if (!name || !gender) {
+    alert("Name & Gender required ❌");
+    return;
+  }
+
+  const fatherId = document.getElementById("editFather").value;
+  const motherId = document.getElementById("editMother").value;
+  const spouseId = document.getElementById("editSpouse").value;
+  const relationSelect = document.getElementById("editRelation").value;
+  const customRelation = document.getElementById("editCustomRelation").value;
+  let relationType;
+  if (relationSelect === "Other" && customRelation) {
+    relationType = customRelation;
+  } 
+  else {
+    relationType = relationSelect;
+  }
+  const file = document.getElementById("editPhoto").files[0];
+  const formData = new FormData();
+  formData.append("name", name);
+  formData.append("gender", gender);
+  formData.append("fatherId", fatherId);
+  formData.append("motherId", motherId);
+  formData.append("spouseId", spouseId);
+  formData.append("relationType", relationType);
+
+  if (file) {
+    formData.append("profilePic", file);
+  }
+
+const res = await fetch(API + "/update/" + editId, {
+  method: "PUT",
+  headers: { "Authorization": token },
+  body: formData
+});
+
+const data = await res.json();
+console.log("Update response:", data);
+console.log(fatherId, motherId, spouseId, relationType);
+
+  alert("Member Updated ✅");
+
+  closeModal();
+  loadMembers();
+}
+
+// 🔍 Search
+document.getElementById("search").addEventListener("input", (e) => {
+  const value = e.target.value.toLowerCase();
+
+  const filtered = allData.filter(p =>
+    p.name.toLowerCase().includes(value)
+  );
+
+  renderCards(filtered);
+});
+
+// 🚪 Logout
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "home.html";
+}
+
+// 🚀 INIT
+loadMembers();
+</script>
+
+</body>
+</html>

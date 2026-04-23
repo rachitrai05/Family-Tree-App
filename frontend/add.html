@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Family Tree</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body class="bg-gray-100 p-6">
+
+  <!-- Navbar -->
+  <div class="flex justify-between items-center bg-white p-4 rounded shadow mb-6">
+    <h1 class="text-2xl font-bold text-blue-600">🌳 Family Tree</h1>
+    <a href="members.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      View Members
+    </a>
+     <div class="flex gap-2">
+      <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        Logout
+      </button>
+
+      <a href="dashboard.html" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+        Back to dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="bg-white p-6 rounded shadow mb-6">
+    <h2 class="text-xl font-semibold mb-4">Add Family Member</h2>
+
+    <!-- Name -->
+    <div class="mb-2">
+      <label for="name" class="block text-gray-700 mb-1">👤 Name</label>
+      <input id="name" placeholder="Enter Name" class="border p-2 w-full rounded">
+    </div>
+
+    <!-- Gender -->
+    <div class="mb-2">
+      <label for="gender" class="block text-gray-700 mb-1">⚧ Gender</label>
+      <select id="gender" class="border p-2 w-full rounded">
+        <option value="">Select Gender</option>
+        <option>Male</option>
+        <option>Female</option>
+      </select>
+    </div>
+  <!-- Relation -->
+<div class="mb-2">
+  <label class="block text-gray-700 mb-1">🔗 Relation</label>
+
+  <!-- Select -->
+  <select id="relationType" onchange="handleRelationChange()" class="border p-2 w-full rounded">
+    <option value="">Select Relation</option>
+    <option>Father</option>
+    <option>Mother</option>
+    <option>Son</option>
+    <option>Daughter</option>
+    <option>Brother</option>
+    <option>Sister</option>
+    <option>Grandfather</option>
+    <option>Grandmother</option>
+    <option>Husband</option>
+    <option>Wife</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <!-- Custom Input (ALAG hona chahiye) -->
+  <input 
+    id="customRelation" 
+    placeholder="Enter custom relation"
+    class="border p-2 w-full rounded mt-2 hidden"
+  />
+</div>
+
+
+    <!-- Father -->
+    <div class="mb-2">
+      <label for="fatherSelect" class="block text-gray-700 mb-1">👨 Father</label>
+      <select id="fatherSelect" class="border p-2 w-full rounded">
+        <option value="">Select Father</option>
+      </select>
+    </div>
+
+    <!-- Mother -->
+    <div class="mb-2">
+      <label for="motherSelect" class="block text-gray-700 mb-1">👩 Mother</label>
+      <select id="motherSelect" class="border p-2 w-full rounded">
+        <option value="">Select Mother</option>
+      </select>
+    </div>
+
+
+    <!-- Spouse -->
+    <div class="mb-4">
+      <label for="spouseSelect" class="block text-gray-700 mb-1">❤️ Spouse</label>
+      <select id="spouseSelect" class="border p-2 w-full rounded">
+        <option value="">Select Spouse</option>
+      </select>
+    </div>
+
+    <!-- Birth Date -->
+    <div class="mb-2">
+      <label for="birthDate" class="block text-gray-700 mb-1">🍼 Birth Date</label>
+      <input id="birthDate" type="date" class="border p-2 w-full rounded">
+    </div>
+
+    <!-- Death Date -->
+    <div class="mb-2">
+      <label for="deathDate" class="block text-gray-700 mb-1">🪦 Death Date (Optional)</label>
+      <input id="deathDate" type="date" class="border p-2 w-full rounded">
+    </div>
+
+    <!-- Birth Place -->
+    <div class="mb-4">
+      <label for="birthPlace" class="block text-gray-700 mb-1">🏠 Birth Place</label>
+      <input id="birthPlace" placeholder="City / Country" class="border p-2 w-full rounded">
+    </div>
+    <div class="mb-4">
+      <label class="block text-gray-700 mb-1">📸 Profile Photo</label>
+      <input id="profilePic" type="file" class="border p-2 w-full rounded">
+    </div>
+    <!-- Add Button -->
+    <button onclick="addPerson()" 
+      class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full">
+      Add Member
+    </button>
+  </div>
+<script src="script.js">
+  
+  if (!localStorage.getItem("token")) {
+  window.location.href = "home.html";
+}
+
+</script>
+
+</body>
+</html>

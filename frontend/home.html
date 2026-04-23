@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Family Tree App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- Navbar -->
+<div class="flex justify-between items-center p-4 bg-white shadow">
+  <h1 class="text-2xl font-bold text-gray-800">🌳 Family Tree</h1>
+
+  <div class="flex gap-3">
+    <a href="login.html" class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">
+      Login
+    </a>
+    <a href="signup.html" class="px-4 py-2 border border-gray-800 text-gray-800 rounded-lg hover:bg-gray-100 transition">
+      Signup
+    </a>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="flex flex-col items-center justify-center text-center py-20 bg-gradient-to-br from-gray-200 to-gray-300">
+
+  <h2 class="text-4xl font-bold mb-4 text-gray-800">
+    Build Your Family Legacy 🌳
+  </h2>
+
+  <p class="text-gray-600 mb-6 max-w-xl">
+    Create, manage and visualize your family tree with relationships, photos, and history.
+  </p>
+
+  <div class="flex gap-4">
+    <a href="signup.html"
+      class="bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-gray-800 hover:scale-105 transition">
+      Get Started
+    </a>
+
+    <a href="login.html"
+      class="border border-gray-900 px-6 py-3 rounded-xl hover:bg-gray-100 hover:scale-105 transition">
+      Login
+    </a>
+  </div>
+
+</div>
+
+<!-- 🔥 SLIDER -->
+<div class="max-w-5xl mx-auto mt-10 relative overflow-hidden rounded-xl shadow-lg">
+
+  <img id="slider"
+    class="w-full h-[420px] object-cover transition duration-700">
+
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black/20"></div>
+
+</div>
+
+<!-- FEATURES -->
+<div class="grid md:grid-cols-3 gap-6 p-10 max-w-6xl mx-auto">
+
+  <!-- CARD 1 -->
+  <div onclick="goToLogin()"
+    class="bg-white p-6 rounded-xl shadow hover:shadow-xl hover:scale-105 transition cursor-pointer">
+    <h3 class="text-xl font-bold mb-2">👨‍👩‍👧 Add Members</h3>
+    <p class="text-gray-600">Add your family members with detailed information.</p>
+  </div>
+
+  <!-- CARD 2 -->
+  <div onclick="goToLogin()"
+    class="bg-white p-6 rounded-xl shadow hover:shadow-xl hover:scale-105 transition cursor-pointer">
+    <h3 class="text-xl font-bold mb-2">🌳 Visual Tree</h3>
+    <p class="text-gray-600">View your family tree in a beautiful visual format.</p>
+  </div>
+
+  <!-- CARD 3 -->
+  <div onclick="goToLogin()"
+    class="bg-white p-6 rounded-xl shadow hover:shadow-xl hover:scale-105 transition cursor-pointer">
+    <h3 class="text-xl font-bold mb-2">🔐 Secure Access</h3>
+    <p class="text-gray-600">Login to securely manage your personal family data.</p>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="text-center py-6 text-gray-500">
+  © 2026 Family Tree App • Built with ❤️
+</div>
+
+<script>
+// 🔥 Better Image Slider (HD images)
+const images = [
+  "https://images.unsplash.com/photo-1609220136736-443140cffec6",
+  "https://images.unsplash.com/photo-1511895426328-dc8714191300",
+  "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9",
+];
+
+let index = 0;
+const slider = document.getElementById("slider");
+
+// Initial image
+slider.src = images[0];
+
+// Auto change
+setInterval(() => {
+  index = (index + 1) % images.length;
+
+  slider.style.opacity = 0;
+
+  setTimeout(() => {
+    slider.src = images[index];
+    slider.style.opacity = 1;
+  }, 300);
+
+}, 3000);
+
+// 🔐 Redirect to login
+function goToLogin() {
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

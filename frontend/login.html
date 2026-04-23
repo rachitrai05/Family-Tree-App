@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center h-screen">
+
+<div class="bg-white p-6 rounded-xl shadow w-80">
+  <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+
+  <input id="email" placeholder="Email" class="border p-2 w-full mb-2 rounded">
+  <input id="password" type="password" placeholder="Password" class="border p-2 w-full mb-4 rounded">
+
+  <button onclick="login()" class="bg-blue-500 text-white w-full py-2 rounded hover:bg-blue-600">
+    Login
+  </button>
+  
+  <a href="forgot.html" class="text-blue-500 text-sm">
+  Forgot Password?
+</a>
+  <p class="text-center mt-3 text-sm">
+    New user? 
+    <a href="signup.html" class="text-blue-500">Signup</a>
+  </p>
+</div>
+
+<script>
+const API = "http://localhost:5000";
+
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch(API + "/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", data.name);
+    window.location.href = "dashboard.html";
+  } else {
+    alert(data.message || "Login failed ❌");
+  }
+}
+</script>
+
+</body>
+</html>

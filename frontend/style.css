@@ -1,0 +1,17 @@
+body {
+  font-family: Arial;
+  text-align: center;
+}
+
+input, select, button {
+  margin: 5px;
+  padding: 8px;
+}
+
+ul {
+  list-style: none;
+}
+
+#tree {
+  margin-top: 20px;
+}

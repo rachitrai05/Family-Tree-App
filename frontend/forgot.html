@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Forgot Password</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+<div class="bg-white p-6 rounded shadow w-80">
+  <h2 class="text-xl font-bold mb-4">Forgot Password</h2>
+
+  <input id="email" type="email" placeholder="Enter your email"
+    class="border p-2 w-full mb-4 rounded">
+
+  <button onclick="sendResetLink()"
+    class="bg-blue-500 text-white w-full p-2 rounded hover:bg-blue-600">
+    Send Reset Link
+  </button>
+
+  <p class="text-sm text-gray-500 mt-3 text-center">
+    You will receive a password reset link in your email 📩
+  </p>
+</div>
+
+<script>
+const API = "http://localhost:5000";
+
+async function sendResetLink() {
+  const email = document.getElementById("email").value;
+
+  if (!email) {
+    alert("Please enter email ❌");
+    return;
+  }
+
+  try {
+    const res = await fetch(API + "/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+
+    // 🔥 SAME MESSAGE (security)
+    alert(data.message);
+
+  } catch (err) {
+    alert("Something went wrong ❌");
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Family Tree</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body class="bg-gray-100 p-6">
+
+  <!-- Navbar -->
+  <div class="flex justify-between items-center bg-white p-4 rounded shadow mb-6">
+    <h1 class="text-2xl font-bold text-blue-600">🌳 Family Tree</h1>
+    <a href="members.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      View Members
+    </a>
+     <div class="flex gap-2">
+      <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        Logout
+      </button>
+
+      <a href="dashboard.html" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+        Back to Dashboard
+      </a>
+    </div>
+  </div>
+<!-- Tree -->
+  <div class="bg-white p-6 rounded shadow">
+    <h2 class="text-xl font-semibold mb-4">Family Tree</h2>
+    <div id="tree"></div>
+  </div>
+
+  <script src="script.js">
+
+     if (!localStorage.getItem("token")) {
+      window.location.href = "home.html";
+      }
+  </script>
+
+</body>
+</html>

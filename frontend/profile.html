@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white min-h-screen p-6">
+
+<div class="max-w-5xl mx-auto">
+
+  <!-- Back Button -->
+  <a href="members.html" class="mb-6 inline-block bg-blue-500 px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+    ← Back
+  </a>
+
+  <!-- Profile Card -->
+  <div id="profile" class="bg-gray-800/80 backdrop-blur p-6 rounded-2xl shadow-2xl mb-6"></div>
+
+  <!-- FULL TREE -->
+  <div class="bg-gray-800/70 p-4 rounded-xl">
+    <h2 class="text-xl font-bold mb-3 text-green-300">🧬 Full Family Tree</h2>
+    <div id="fullTree"></div>
+  </div>
+
+</div>
+
+<script>
+const API = "http://localhost:5000";
+const token = localStorage.getItem("token");
+let data = [];
+
+const id = new URLSearchParams(window.location.search).get("id");
+
+// ==========================
+// FORMAT DATE
+// ==========================
+function formatDate(dateStr) {
+  if (!dateStr) return "N/A";
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+// ==========================
+// AGE CALC
+// ==========================
+function calculateAge(birthDate, deathDate) {
+  if (!birthDate) return "N/A";
+
+  const birth = new Date(birthDate);
+  const end = deathDate ? new Date(deathDate) : new Date();
+
+  let age = end.getFullYear() - birth.getFullYear();
+  const m = end.getMonth() - birth.getMonth();
+
+  if (m < 0 || (m === 0 && end.getDate() < birth.getDate())) {
+    age--;
+  }
+
+  return age + " years";
+}
+
+function getRelationLabel(person, target) {
+  if (!person || !target) return "";
+
+  // Spouse
+  if (person.spouseId === target._id || target.spouseId === person._id) {
+    return target.gender === "Male" ? "Husband" : "Wife";
+  }
+
+  // Parent
+ // Parent
+if (person.fatherId === target._id) return "Father";
+if (person.motherId === target._id) return "Mother";
+
+// Child
+if (target.fatherId === person._id || target.motherId === person._id) {
+  return target.gender === "Male" ? "Son" : "Daughter";
+}
+
+  // Parent
+  if (person.fatherId === target._id) return "Father";
+  if (person.motherId === target._id) return "Mother";
+
+  // Child
+  if (target.fatherId === person._id || target.motherId === person._id) {
+    return target.gender === "Male" ? "Son" : "Daughter";
+  }
+
+
+  return "";
+}
+
+// ==========================
+// SPOUSE LOGIC
+// ==========================
+function getSpouse(person) {
+  if (!person) return null;
+  return data.find(p => p._id === person.spouseId) 
+      || data.find(p => p.spouseId === person._id);
+}
+
+// ==========================
+// FIX OLD DATA
+// ==========================
+function fixSpouse(person) {
+  if (person.spouseId) return person;
+  const reverse = data.find(x => x.spouseId === person._id);
+  if (reverse) person.spouseId = reverse._id;
+  return person;
+}
+
+// ==========================
+// LOAD PROFILE
+// ==========================
+async function loadProfile() {
+
+  const res = await fetch(API + "/all", {
+    headers: { "Authorization": token }
+  });
+
+  data = await res.json();
+
+  let person = data.find(p => p._id === id);
+  person = fixSpouse(person);
+
+  const spouse = getSpouse(person);
+
+  // CHILDREN
+  const children = data.filter(p =>
+    p.fatherId === person._id ||
+    p.motherId === person._id ||
+    (spouse && (
+      p.fatherId === spouse._id ||
+      p.motherId === spouse._id
+    ))
+  );
+
+  // PARENTS
+const father = data.find(p => p._id === person.fatherId);
+const mother = data.find(p => p._id === person.motherId);
+
+  // UI
+  document.getElementById("profile").innerHTML = `
+
+    <img src="${person.profilePic || 'https://via.placeholder.com/120'}"
+      class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-blue-500 object-cover">
+
+    <h1 class="text-3xl font-bold text-center mb-4 text-blue-400">
+      ${person.name}
+    </h1>
+
+    <div class="grid grid-cols-2 gap-4 mb-6 text-gray-300">
+      <p><b>Gender:</b> ${person.gender}</p>
+      <p><b>Age:</b> ${calculateAge(person.birthDate, person.deathDate)}</p>
+      <p><b>Birth Date:</b> ${formatDate(person.birthDate)}</p>
+      <p><b>Death Date:</b> ${formatDate(person.deathDate)}</p>
+      <p><b>Birth Place:</b> ${person.birthPlace || "N/A"}</p>
+      <p><b>Relation:</b> ${person.relationType || "N/A"}</p>
+    </div>
+
+    <div class="bg-gray-700/70 p-4 rounded-xl mb-4">
+      <h2 class="text-xl font-bold mb-2">❤️ Spouse</h2>
+      <p class="text-gray-200">
+        ${spouse ? `❤️ ${getRelationLabel(person, spouse)}: ${spouse.name}` : "None"}
+      </p>
+    </div>
+    <div class="bg-gray-700/70 p-4 rounded-xl mb-4">
+      <h2 class="text-xl font-bold mb-2">👨‍👩‍👧 Parents</h2>
+      <p class="text-gray-200">
+        ${father ? `👨 ${getRelationLabel(person, father)}: ${father.name}` : ""}
+        ${mother ? `<br>👩 ${getRelationLabel(person, mother)}: ${mother.name}` : ""}
+      </p>
+    </div>    
+    <div class="bg-gray-700/70 p-4 rounded-xl">
+      <h2 class="text-xl font-bold mb-2">👶 Children</h2>
+      ${
+        children.length > 0
+        ? `<ul>
+            ${children.map(c => `
+              <li class="mb-1">
+                👶 ${getRelationLabel(person, c)}: ${c.name}
+              </li>
+            `).join("")}
+          </ul>`
+        : `<p>No Children</p>`
+      }
+    </div>
+  `;
+
+  // TREE
+  const treeData = buildFullTree(person);
+
+  if (!treeData) {
+    document.getElementById("fullTree").innerHTML = "No Tree Data";
+  } else {
+    drawFullTree(treeData);
+  }
+}
+
+// ==========================
+// FULL TREE LOGIC
+// ==========================
+function buildFullTree(person) {
+
+  function getSpouse(p) {
+    return data.find(x => x._id === p.spouseId) ||
+           data.find(x => x.spouseId === p._id);
+  }
+
+  function buildNode(p) {
+    const spouse = getSpouse(p);
+
+      const children = data.filter(c =>
+      c.fatherId === p._id ||
+      c.motherId === p._id ||
+      (spouse && (
+        c.fatherId === spouse._id ||
+        c.motherId === spouse._id
+      ))
+    );
+    return {
+      id: p._id,
+      name: p.name,
+      gender: p.gender,
+      spouse: spouse ? {
+        id: spouse._id,
+        name: spouse.name,
+        gender: spouse.gender
+      } : null,
+      children: children.map(c => buildNode(c))
+    };
+  }
+
+  // 🔥 ROOT FIND (sabse upar wala ancestor)
+  let root = person;
+
+    while (root.fatherId || root.motherId) {
+    root = data.find(p => p._id === root.fatherId || p._id === root.motherId);
+    if (!root) break;
+  }
+
+  return buildNode(root);
+}
+// ==========================
+// DRAW TREE
+// ==========================
+function drawFullTree(treeData) {
+
+  const container = document.getElementById("fullTree");
+  container.innerHTML = "";
+
+  const width = 900;
+  const height = 550;
+
+  const svg = d3.select(container)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .style("background", "#111827")
+    .call(d3.zoom().on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    }));
+
+  const g = svg.append("g");
+
+  const root = d3.hierarchy(treeData);
+  const treeLayout = d3.tree().size([width - 200, height - 200]);
+
+  treeLayout(root);
+
+  // LINKS
+  g.selectAll("path")
+    .data(root.links())
+    .enter()
+    .append("path")
+    .attr("d", d3.linkVertical()
+      .x(d => d.x + 100)
+      .y(d => d.y + 50)
+    )
+    .attr("fill", "none")
+    .attr("stroke", "#64748b")
+    .attr("stroke-width", 2);
+
+    const node = g.selectAll("g")
+    .data(root.descendants())
+    .enter()
+    .append("g")
+    .attr("transform", d => `translate(${d.x + 100}, ${d.y + 50})`)
+    .style("cursor", "pointer") // 👈 pointer cursor
+    .on("click", (event, d) => {
+      const person = data.find(p => p._id === d.data.id);
+
+      if (person) {
+        window.location.href = `profile.html?id=${person._id}`;
+      }
+    });
+  // NODE
+  node.append("circle")
+    .attr("r", 42)
+    .attr("fill", d => d.data.gender === "Male" ? "#3b82f6" : "#ec4899")
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 2)
+    .on("mouseover", function () {
+      d3.select(this).attr("r", 45);
+    })
+    .on("click", (event, d) => {
+      if (d.data.id) {
+        window.location.href = `profile.html?id=${d.data.id}`;
+      }
+    })
+    .on("mouseout", function () {
+      d3.select(this).attr("r", 42);
+    });
+
+    node.each(function(d) {
+
+  const g = d3.select(this);
+
+  // TEXT
+  const text = g.append("text")
+    .attr("dy", 6) // vertical align center 
+    .attr("text-anchor", "middle")
+    .style("font-size", "20px")
+    .style("font-weight", "bold")
+    .style("fill", "#111") // black for white bg
+    .text(() => {
+      if (d.data.spouse) {
+        return `${d.data.name} ❤️ ${d.data.spouse.name}`;
+      }
+      return d.data.name;
+    });
+
+  // 🔥 WAIT FOR TEXT RENDER THEN GET SIZE
+  const bbox = text.node().getBBox();
+
+  // BACKGROUND
+  g.insert("rect", "text")
+    .attr("x", bbox.x - 8)
+    //.attr("y", bbox.y - 5)
+    .attr("y", bbox.y - 8)
+    .attr("width", bbox.width + 20)
+    //.attr("height", bbox.height + 10)
+    .attr("height", bbox.height+16)
+    .attr("fill", "white") 
+    .attr("rx", 6);
+});
+
+  // TOOLTIP
+  node.append("title")
+    .text(d => {
+      if (d.data.spouse) {
+        return `Name: ${d.data.name}
+Spouse: ${d.data.spouse.name}`;
+      }
+      return `Name: ${d.data.name}`;
+    });
+}
+
+// INIT
+loadProfile();
+
+</script>
+
+</body>
+</html>
