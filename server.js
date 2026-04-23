@@ -16,6 +16,9 @@ const crypto = require("crypto");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+app.get("/", (req, res) => {
+  res.send("Family Tree API is LIVE 🚀");
+});
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
