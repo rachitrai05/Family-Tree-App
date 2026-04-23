@@ -1,4 +1,4 @@
-const API = "http://localhost:5000";
+const API = "https://family-tree-app-i1rl.onrender.com";
 const token = localStorage.getItem("token");
 
 // 🔐 Auth check
