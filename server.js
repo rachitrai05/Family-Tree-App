@@ -9,7 +9,7 @@ const path = require("path");
 const app = express();
 app.use(cors({
   origin: [
-    "https://myfamily-tree-app.netlify.app",
+    "https://myfamily-tree-application.netlify.app",
     "http://localhost:5500"
   ]
 }));
