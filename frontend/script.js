@@ -1,6 +1,6 @@
 const API = "https://family-tree-app-i1rl.onrender.com";
 const token = localStorage.getItem("token");
-console.log("TOKEN:", token);
+// console.log("TOKEN:", token);
 
 // 🔐 Auth check
 if (!token) {
@@ -111,9 +111,9 @@ async function loadData() {
       headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
     });
 
-    console.log("TOKEN:", localStorage.getItem("token"));
+    // console.log("TOKEN:", localStorage.getItem("token"));
     const data = await res.json();
-     console.log("API DATA:", data); // 👈 ADD THIS
+    //  console.log("API DATA:", data); // 👈 ADD THIS
 
     // ❌ agar array nahi hai to error show karo
     if (!Array.isArray(data)) {
