@@ -122,7 +122,20 @@ async function loadMembers() {
   }
   });
 
-  const data = await res.json();
+  if (!res.ok) {
+  alert("Session expired, please login again");
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+  return;
+}
+
+const data = await res.json();
+
+if (!Array.isArray(data)) {
+  console.error("Invalid data:", data);
+  return;
+}
+
   allData = data;
   renderCards(data);
 }
