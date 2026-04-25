@@ -21,7 +21,8 @@ const crypto = require("crypto");
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const multerStorageCloudinary = require("multer-storage-cloudinary");
+const CloudinaryStorage = multerStorageCloudinary.CloudinaryStorage;
 
 
 app.get("/", (req, res) => {
