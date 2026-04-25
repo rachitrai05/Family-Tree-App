@@ -20,10 +20,6 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const cloudinary = require("cloudinary").v2;
-const multerStorageCloudinary = require("multer-storage-cloudinary");
-const CloudinaryStorage = multerStorageCloudinary.CloudinaryStorage;
-
 
 app.get("/", (req, res) => {
   res.send("Family Tree API is LIVE 🚀");
@@ -293,15 +289,11 @@ app.post("/reset-password", async (req, res) => {
 // ==========================
 // FILE UPLOAD (OPTIONAL)
 // ==========================
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "family-tree",
-    allowed_formats: ["jpg", "png", "jpeg"]
-  }
-});
 
-const upload = multer({ storage });
+
+const upload = multer({
+  dest: "temp/"
+});
 
 // ==========================
 // ADD PERSON
@@ -314,8 +306,12 @@ app.post("/add", auth, upload.single("profilePic"), async (req, res) => {
       return res.status(400).json({ message: "Name & Gender required ❌" });
     }
 
-   const profilePic = req.file ? req.file.path : "";
-   // console.log("Uploaded file:", req.file);
+  let profilePic = "";
+
+  if (req.file) {
+    const result = await cloudinary.uploader.upload(req.file.path);
+    profilePic = result.secure_url;
+  }
 
     const person = new Person({
       name,
@@ -402,8 +398,9 @@ app.put("/update/:id", auth, upload.single("profilePic"), async (req, res) => {
       relationType: req.body.relationType || ""
     };
 
-    if (req.file) {
-        updateData.profilePic = req.file.path; // ✅ Cloudinary URL
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path);
+        updateData.profilePic = result.secure_url;
       }
 
     const person = await Person.findOneAndUpdate(
