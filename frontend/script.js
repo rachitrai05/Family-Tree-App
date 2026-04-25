@@ -62,7 +62,7 @@ async function addPerson() {
   try {
     await fetch(API + "/add", {
           method: "POST",
-          headers: {"Authorization": "Bearer " + localStorage.getItem("token")},
+          headers: {"Authorization": "Bearer " + localStorage.getItem("token") },
           body: formData
     });
 
@@ -128,9 +128,7 @@ async function loadData() {
         window.location.href = "login.html";
         return;
       }
-
-      populateDropdown(data);
-
+    populateDropdown(data);
     const trees = buildTree(data);
 
     const container = document.getElementById("tree");

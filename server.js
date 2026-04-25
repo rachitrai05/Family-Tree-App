@@ -244,7 +244,6 @@ app.post("/forgot-password", async (req, res) => {
 app.post("/reset-password", async (req, res) => {
   try {
     const { token, newPassword } = req.body;
-
       if (newPassword.length < 6) {
       return res.status(400).json({ message: "Password too short ❌" });
     }
