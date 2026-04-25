@@ -216,7 +216,7 @@ app.post("/forgot-password", async (req, res) => {
     await user.save();
 
     // 🔗 RESET LINK
-    const resetLink = `https://myfamily-tree-app.netlify.app/reset.html?token=${token}`;
+    const resetLink = `https://myfamily-tree-application.netlify.app/reset.html?token=${token}`;
 
     // 📧 SEND EMAIL
     await transporter.sendMail({
