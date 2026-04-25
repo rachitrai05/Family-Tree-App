@@ -61,7 +61,7 @@ async function addPerson() {
   try {
     await fetch(API + "/add", {
       method: "POST",
-      headers: { "Authorization": token },
+      headers: { "Authorization": "Bearer " + token },
       body: formData
     });
 
@@ -107,7 +107,7 @@ if (treeEl) {
 async function loadData() {
   try {
     const res = await fetch(API + "/all", {
-      headers: { "Authorization": token }
+      headers: { "Authorization": "Bearer " + token }
     });
 
     const data = await res.json();

@@ -121,7 +121,7 @@ function fixSpouse(person) {
 async function loadProfile() {
 
   const res = await fetch(API + "/all", {
-    headers: { "Authorization": token }
+    headers: { "Authorization": "Bearer " + token }
   });
 
   data = await res.json();

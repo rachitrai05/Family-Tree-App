@@ -117,7 +117,7 @@ function handleEditRelationChange() {
 // 🚀 Load Members
 async function loadMembers() {
   const res = await fetch(API + "/all", {
-    headers: { "Authorization": token }
+    headers: { "Authorization": "Bearer " + token }
   });
 
   const data = await res.json();
@@ -189,7 +189,7 @@ async function deletePerson(event, id) {
 
   await fetch(API + "/delete/" + id, {
     method: "DELETE",
-    headers: { "Authorization": token }
+    headers: { "Authorization": "Bearer " + token }
   });
 
   loadMembers();
@@ -295,7 +295,7 @@ async function updateMember() {
 
 const res = await fetch(API + "/update/" + editId, {
   method: "PUT",
-  headers: { "Authorization": token },
+  headers: { "Authorization": "Bearer " + token },
   body: formData
 });
 

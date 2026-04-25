@@ -8,13 +8,21 @@ const multer = require("multer");
 const path = require("path");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://myfamily-tree-app.netlify.app",
+    "http://localhost:5500"
+  ]
+}));
 app.use(express.json());
 
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-
 const JWT_SECRET = process.env.JWT_SECRET;
+
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
 
 app.get("/", (req, res) => {
   res.send("Family Tree API is LIVE 🚀");
@@ -79,7 +87,7 @@ const Person = mongoose.model("Person", personSchema);
 // AUTH MIDDLEWARE
 // ==========================
 function auth(req, res, next) {
-  const token = req.headers.authorization;
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ message: "No token ❌" });
@@ -94,6 +102,11 @@ function auth(req, res, next) {
   }
 }
 
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET
+});
 
 // ==========================
 // SIGNUP
@@ -106,6 +119,18 @@ app.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Email & Password required ❌" });
     }
 
+    if (!name) {
+      return res.status(400).json({ message: "Name required ❌" });
+    }
+
+    if (!email.includes("@")) {
+      return res.status(400).json({ message: "Invalid email ❌" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters ❌" });
+    }
+
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "User already exists ❌" });
@@ -115,7 +140,7 @@ app.post("/signup", async (req, res) => {
 
     const user = new User({
       name,
-      email,
+      email : email.toLowerCase(),
       password: hashedPassword
     });
 
@@ -139,7 +164,7 @@ app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(400).json({ message: "User not found ❌" });
     }
@@ -194,11 +219,11 @@ app.post("/forgot-password", async (req, res) => {
     await user.save();
 
     // 🔗 RESET LINK
-    const resetLink = `http://localhost:5500/frontend/reset.html?token=${token}`;
+    const resetLink = `https://myfamily-tree-app.netlify.app/reset.html?token=${token}`;
 
     // 📧 SEND EMAIL
     await transporter.sendMail({
-      from: "rachitrai02@gmail.com",
+      from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset",
       html: `
@@ -222,6 +247,10 @@ app.post("/forgot-password", async (req, res) => {
 app.post("/reset-password", async (req, res) => {
   try {
     const { token, newPassword } = req.body;
+
+      if (newPassword.length < 6) {
+      return res.status(400).json({ message: "Password too short ❌" });
+    }
 
     // 🔥 HASH TOKEN AGAIN
     const hashedToken = crypto
@@ -263,19 +292,15 @@ app.post("/reset-password", async (req, res) => {
 // ==========================
 // FILE UPLOAD (OPTIONAL)
 // ==========================
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "family-tree",
+    allowed_formats: ["jpg", "png", "jpeg"]
   }
 });
 
 const upload = multer({ storage });
-
-app.use("/uploads", express.static("uploads"));
-
 
 // ==========================
 // ADD PERSON
@@ -288,9 +313,8 @@ app.post("/add", auth, upload.single("profilePic"), async (req, res) => {
       return res.status(400).json({ message: "Name & Gender required ❌" });
     }
 
-    const profilePic = req.file 
-      ? `http://localhost:5000/uploads/${req.file.filename}` 
-      : "";
+   const profilePic = req.file ? req.file.path : "";
+   // console.log("Uploaded file:", req.file);
 
     const person = new Person({
       name,
@@ -378,8 +402,8 @@ app.put("/update/:id", auth, upload.single("profilePic"), async (req, res) => {
     };
 
     if (req.file) {
-      updateData.profilePic = `http://localhost:5000/uploads/${req.file.filename}`;
-    }
+        updateData.profilePic = req.file.path; // ✅ Cloudinary URL
+      }
 
     const person = await Person.findOneAndUpdate(
       { _id: id, userId: req.userId },
@@ -416,11 +440,14 @@ app.put("/update/:id", auth, upload.single("profilePic"), async (req, res) => {
 // ==========================
 // DELETE PERSON
 
-app.delete("/delete/:id", async (req, res) => {
+app.delete("/delete/:id", auth, async (req, res) => {
   try {
     const personId = req.params.id;
 
-    const person = await Person.findById(personId);
+    const person = await Person.findOne({
+      _id: personId,
+      userId: req.userId
+    });
     if (!person) {
       return res.status(404).send("Not found");
     }
@@ -464,8 +491,17 @@ app.delete("/delete/:id", async (req, res) => {
 });
 
 // ==========================
+// GLOBAL ERROR HANDLER
+// ==========================
+app.use((err, req, res, next) => {
+  console.error("Global Error:", err);
+  res.status(500).json({ error: "Something went wrong ❌" });
+});
+
+// ==========================
 // SERVER START
 // ==========================
-app.listen(5000, () => {
-  console.log("Server running on port 5000 🚀");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT} 🚀`);
 });
