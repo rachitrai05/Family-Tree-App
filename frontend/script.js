@@ -61,8 +61,8 @@ async function addPerson() {
   try {
     await fetch(API + "/add", {
       method: "POST",
-      headers: { "Authorization": "Bearer " + token },
-      body: formData
+          headers: {"Authorization": "Bearer " + localStorage.getItem("token")},
+          body: formData
     });
 
     // CLEAR FIELDS
@@ -107,12 +107,21 @@ if (treeEl) {
 async function loadData() {
   try {
     const res = await fetch(API + "/all", {
-      headers: { "Authorization": "Bearer " + token }
+      headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
     });
 
+    console.log("TOKEN:", localStorage.getItem("token"));
     const data = await res.json();
 
-    populateDropdown(data);
+      if (!res.ok) {
+        console.error("Auth Error:", data);
+        alert("Session expired, login again");
+        localStorage.removeItem("token");
+        window.location.href = "login.html";
+        return;
+      }
+
+      populateDropdown(data);
 
     const trees = buildTree(data);
 
